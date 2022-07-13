@@ -206,7 +206,7 @@ int main(int argc, char** argv)
     if ( !(xc = xc_interface_open(0, 0, 0)) )
         goto done;
 
-    if ( reset && xc_memshr_fork_reset(xc, domid) )
+    if ( reset && xc_memshr_fork_reset(xc, domid, true, true) )
     {
         printf("Failed to reset VM, is it a fork?\n");
         goto done;
@@ -244,7 +244,7 @@ int main(int argc, char** argv)
             vmi_pagecache_flush(vmi);
 
 #ifdef HAVE_XEN
-            if ( xc_memshr_fork_reset(xc, domid) )
+            if ( xc_memshr_fork_reset(xc, domid, true, true) )
             {
                 printf("Failed to reset VM, is it a fork?\n");
                 break;

@@ -94,7 +94,7 @@ static bool fuzz(void)
     if ( !fuzzdomid )
         return false;
 
-    if ( xc_memshr_fork_reset(xc, fuzzdomid) )
+    if ( xc_memshr_fork_reset(xc, fuzzdomid, true, true) )
         return false;
 
     crash = 0;
