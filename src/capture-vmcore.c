@@ -202,6 +202,7 @@ int main(int argc, char** argv)
     addr_t kexec_crash_image = 0, elf_load_addr = 0;
     addr_t kimage_arch_offset = 0, elf_load_addr_offset = 0, elf_headers_sz_offset = 0;
     size_t elf_headers_sz = 0;
+    size_t default_elf_headers_sz = 4096;
     FILE *out = NULL;
     int c, long_index = 0;
     const struct option long_opts[] =
@@ -280,17 +281,21 @@ int main(int argc, char** argv)
     }
 
     if ( (VMI_FAILURE == vmi_get_kernel_struct_offset(vmi, "kimage", "arch", &kimage_arch_offset)) ||
-        (VMI_FAILURE == vmi_get_kernel_struct_offset(vmi, "kimage_arch", "elf_load_addr", &elf_load_addr_offset)) ||
-        (VMI_FAILURE == vmi_get_kernel_struct_offset(vmi, "kimage_arch", "elf_headers_sz", &elf_headers_sz_offset)) )
+        (VMI_FAILURE == vmi_get_kernel_struct_offset(vmi, "kimage", "elf_load_addr", &elf_load_addr_offset)) ||
+        (VMI_FAILURE == vmi_get_kernel_struct_offset(vmi, "kimage", "elf_headers_sz", &elf_headers_sz_offset)) )
     {
         fprintf(stderr, "Cannot find device kimage and/or elf_headers offsets\n");
         goto done;
     }
+    if (elf_headers_sz == 0) {
+        printf("ELF header size not found, using default size\n");
+        elf_headers_sz = default_elf_headers_sz;
+    }
     if ( (VMI_FAILURE == vmi_read_addr_ksym(vmi, "kexec_crash_image", &kexec_crash_image)) ||
         (0 == kexec_crash_image) ||
-        VMI_FAILURE == vmi_read_addr_va(vmi, kexec_crash_image + kimage_arch_offset + elf_load_addr_offset, 0, &elf_load_addr) ||
+        VMI_FAILURE == vmi_read_addr_va(vmi, kexec_crash_image + elf_load_addr_offset, 0, &elf_load_addr) ||
         (0 == elf_load_addr) ||
-        VMI_FAILURE == vmi_read_addr_va(vmi, kexec_crash_image + kimage_arch_offset + elf_headers_sz_offset, 0, &elf_headers_sz) ||
+        VMI_FAILURE == vmi_read_addr_va(vmi, kexec_crash_image + elf_headers_sz_offset, 0, &elf_headers_sz) ||
         (0 == elf_headers_sz) )
     {
         fprintf(stderr, "Either kexec_crash_image or elf_load_addr was not found, or was found to be NULL\n");
